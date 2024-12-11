@@ -20,13 +20,13 @@ const userSchema = new Schema(
     },
     portfolio: [
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Portfolio', 
       },
     ],
     alerts: [
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Alert', 
       },
     ],   

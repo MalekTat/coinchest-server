@@ -1,6 +1,5 @@
 const axios = require('axios');
-const Portfolio = require('../models/Portfolio.model');
-require('dotenv').config();
+
 
 const COINLORE_API_URL = process.env.COINLORE_API_URL;
 
@@ -11,9 +10,9 @@ const updatePortfolioValues = async (portfolio) => {
     portfolio.currentPrice = currentPrice;
     portfolio.totalValue = currentPrice * portfolio.amount;
     return portfolio;
-  } catch (error) {
-    console.error('Error updating portfolio values:', error.message);
-    throw error;
+  } catch (err) {
+    console.error('Error updating portfolio values:', err.message);
+    throw err
   }
 };
 
