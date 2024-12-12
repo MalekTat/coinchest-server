@@ -1,3 +1,4 @@
+const axios = require('axios');
 const apiClient = require('../utils/apiClient.utils');
 
 // Fetch all cryptocurrencies
@@ -52,17 +53,23 @@ const fetchCryptoHistory = async (id, days = 30) => {
 // Fetch conversion rates
 const fetchConversionRate = async () => {
   try {
-    console.log('ApiClient:', apiClient)
-    const response = await apiClient.get(`/exchange_rates`);
-    
+    const response = await axios.get('https://api.coingecko.com/api/v3/exchange_rates');
     const rates = response.data.rates;
     return {
       usdToEur: rates.eur.value / rates.usd.value,
       eurToUsd: rates.usd.value / rates.eur.value,
     };
   } catch (err) {
-    console.error('Error fetching conversion rates:', err.message);
-    throw err;
+    //console.error('Error fetching conversion rates:', err.message);
+    //throw err;
+    console.error("Error details:", {
+      message: err.message,
+      url: err.config?.url,
+      method: err.config?.method,
+      headers: err.config?.headers,
+      response: err.response?.data || "No response data",
+    });
+    throw new Error("Failed to fetch conversion rates. Please try again later.");
   }
 };
 

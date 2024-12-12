@@ -35,19 +35,12 @@ router.get('/:id/history', async (req, res, next) => {
 
 
 // Get conversion rates (USD <-> EUR)
-router.get('/exchange-rates', async (req, res, next) => {
+router.get('/rates', async (req, res, next) => {
   try {
     const rates = await fetchConversionRate();
     res.status(200).json(rates);
   } catch (err) {
-    console.error("Error details:", {
-      message: err.message,
-      url: err.config?.url,
-      method: err.config?.method,
-      headers: err.config?.headers,
-      response: err.response?.data || "No response data",
-    });
-    throw new Error("Failed to fetch conversion rates. Please try again later.");
+    next(err);
   }
 });
 
