@@ -18,18 +18,10 @@ const userSchema = new Schema(
       required: [true, 'Name is required.'],
       unique: true
     },
-    portfolio: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'Portfolio', 
-      },
-    ],
-    alerts: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'Alert', 
-      },
-    ],   
+    profilePhoto: { 
+      type: String, 
+      default: '' 
+    },  
   },
   {   
     timestamps: true

@@ -3,10 +3,18 @@ const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { isAuthenticated } = require("../middlewares/jwt.middleware");
 const UserModel = require("../models/User.model");
+const uploader = require('../middlewares/cloudinary.config.js');
 
 //Sign Up route
-router.post("/signup", async (req, res) => {
+router.post("/signup", uploader.single("profilePhoto"), async (req, res, next) => {
+  
+  //if (!req.file) {
+  //  next(new Error('No file uploaded!'));
+  //  return;
+  //}
+
   const { username, email, password } = req.body;
+  const profilePhoto = req.file?.path;
 
   try {
     const emailIsExist = await UserModel.findOne({ email });
@@ -19,6 +27,7 @@ router.post("/signup", async (req, res) => {
         username,
         email,
         password: hashedPassword,
+        profilePhoto
       };
       const createdUser = await UserModel.create(hashedUser);
       res.status(201).json(createdUser);
