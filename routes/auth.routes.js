@@ -3,7 +3,7 @@ const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { isAuthenticated } = require("../middlewares/jwt.middleware");
 const UserModel = require("../models/User.model");
-const uploader = require('../middlewares/cloudinary.config.js');
+const uploader = require('../middlewares/cloudinary.config');
 
 //Sign Up route
 router.post("/signup", uploader.single("profilePhoto"), async (req, res, next) => {
@@ -14,12 +14,18 @@ router.post("/signup", uploader.single("profilePhoto"), async (req, res, next) =
   //}
 
   const { username, email, password } = req.body;
-  const profilePhoto = req.file?.path;
+  const profilePhoto = req.file?.path || 'https://res.cloudinary.com/dhvyrgmrq/image/upload/v1734197098/iqeyw6qdpum2w0ecqkcm.png';
+
+  if (!username || !email || !password) {
+    return res.status(400).json({ message: "All fields are required." });
+  }
 
   try {
     const emailIsExist = await UserModel.findOne({ email });
-    if (emailIsExist) {
-      res.status(403).json({ message: "Invalid Credentials" });
+    const usernameExists = await UserModel.findOne({ username });
+
+    if (emailIsExist || usernameExists) {
+      res.status(403).json({ message: "Email or Username already exists." });
     } else {
       const salt = bcryptjs.genSaltSync(12);
       const hashedPassword = bcryptjs.hashSync(password, salt);
@@ -52,19 +58,19 @@ router.post("/login", async (req, res) => {
       const passwordsMatch = bcryptjs.compareSync(loginPassword, dbPassword);
       if (passwordsMatch) {
         //Dealing with the token
-        const { _id, username } = userIsExist;
-        const payLoad = { _id, username };
-        const authToken = jwt.sign(payLoad, process.env.TOKEN_SECRET, {
+        const { _id, username, profilePhoto } = userIsExist;
+        const token = jwt.sign({ _id, username }, process.env.TOKEN_SECRET, {
           algorithm: "HS256",
           expiresIn: "6h",
         });
 
-        console.log("the auth token is :", authToken);
 
         //sending final response
-        res
-          .status(200)
-          .json({ message: "login successed", authToken: authToken });
+        res.status(200).json({ 
+          message: "login successed", 
+          authToken: token,
+          user: { _id, username, email, profilePhoto }, 
+        });
       } else {
         return res.status(500).json({ message: "login failed wrong password" });
       }
