@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const PortfolioModel = require('../models/Portfolio.model');
-const { updatePortfolioValues } = require('../services/portfolio.services');
+const { updatePortfolioValues, buyCrypto, sellCrypto } = require('../services/portfolio.services');
 const { isAuthenticated } = require('../middlewares/jwt.middleware');
 
 // Get all portfolio items for the authenticated user
@@ -15,39 +15,33 @@ router.get('/', isAuthenticated, async (req, res, next) => {
   }
 });
 
-// Add a new cryptocurrency to the user's portfolio
-router.post('/', isAuthenticated, async (req, res, next) => {
-  const { cryptoId, name, symbol, amount, purchasePrice } = req.body;
-  try {
-    const newPortfolioItem = await PortfolioModel.create({
-      userId: req.payLoad.currentUser._id,
-      cryptoId,
-      name,
-      symbol,
-      amount,
-      purchasePrice,
-    });
 
-    res.json(newPortfolioItem);
+// Buy Crypto
+router.post('/buy', isAuthenticated, async (req, res, next) => {
+  const { cryptoId, amount, purchasePrice } = req.body;
+  const { _id: userId } = req.payLoad.currentUser;
+
+  try {
+    const updatedPortfolio = await buyCrypto(userId, cryptoId, amount, purchasePrice);
+    res.status(200).json(updatedPortfolio);
   } catch (err) {
     next(err);
   }
 });
 
-// Delete a portfolio item
-router.delete('/:id', isAuthenticated, async (req, res, next) => {
-  const { _id } = req.payLoad.currentUser;
-  try {
-    const portfolioItem = await PortfolioModel.findOneAndDelete({ userId: _id, _id: req.params.id });
+// Sell Crypto
+router.post('/sell', isAuthenticated, async (req, res, next) => {
+  const { cryptoId, amount, sellPrice } = req.body;
+  const { _id: userId } = req.payLoad.currentUser;
 
-    if (!portfolioItem) {
-      return res.status(404).json({ msg: 'Portfolio item not found' });
-    }
-    res.json({ msg: 'Portfolio item removed' });
+  try {
+    const updatedPortfolio = await sellCrypto(userId, cryptoId, amount, sellPrice);
+    res.status(200).json(updatedPortfolio);
   } catch (err) {
     next(err);
   }
 });
+
 
 module.exports = router;
 

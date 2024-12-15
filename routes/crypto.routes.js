@@ -1,10 +1,22 @@
 const router = require("express").Router();
 const { fetchCryptos, fetchCryptoById, fetchCryptoHistory, fetchConversionRate } = require('../services/crypto.services');
 
+
+// Get conversion rates (USD <-> EUR)
+router.get('/rates', async (req, res, next) => {
+  try {
+    const rates = await fetchConversionRate();
+    res.status(200).json(rates);
+  } catch (err) { 
+    next(err);
+  }
+});
+
+
 // Get top cryptocurrencies
 router.get('/top', async (req, res, next) => {
   try {
-    const cryptos = await fetchCryptos(10);
+    const cryptos = await fetchCryptos(30);
     res.status(200).json(cryptos);
   } catch (err) {
     next(err);
@@ -34,14 +46,6 @@ router.get('/:id/history', async (req, res, next) => {
 });
 
 
-// Get conversion rates (USD <-> EUR)
-router.get('/rates', async (req, res, next) => {
-  try {
-    const rates = await fetchConversionRate();
-    res.status(200).json(rates);
-  } catch (err) {
-    next(err);
-  }
-});
+
 
 module.exports = router;

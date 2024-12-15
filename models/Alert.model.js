@@ -8,8 +8,6 @@ const AlertSchema = new Schema(
         required: true,
       },
       cryptoId: { type: String, required: true },
-      name: { type: String, required: true },
-      symbol: { type: String, required: true},
       targetPrice: {
         type: Number, // The price at which the alert should trigger
         required: true,
