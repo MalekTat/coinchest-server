@@ -18,11 +18,11 @@ router.get('/', isAuthenticated, async (req, res, next) => {
 
 // Buy Crypto
 router.post('/buy', isAuthenticated, async (req, res, next) => {
-  const { cryptoId, amount, purchasePrice } = req.body;
+  const { cryptoId, amount, price } = req.body;
   const { _id: userId } = req.payLoad.currentUser;
 
   try {
-    const updatedPortfolio = await buyCrypto(userId, cryptoId, amount, purchasePrice);
+    const updatedPortfolio = await buyCrypto(userId, cryptoId, amount, price);
     res.status(200).json(updatedPortfolio);
   } catch (err) {
     next(err);
@@ -31,11 +31,11 @@ router.post('/buy', isAuthenticated, async (req, res, next) => {
 
 // Sell Crypto
 router.post('/sell', isAuthenticated, async (req, res, next) => {
-  const { cryptoId, amount, sellPrice } = req.body;
+  const { cryptoId, amount, price } = req.body;
   const { _id: userId } = req.payLoad.currentUser;
 
   try {
-    const updatedPortfolio = await sellCrypto(userId, cryptoId, amount, sellPrice);
+    const updatedPortfolio = await sellCrypto(userId, cryptoId, amount, price);
     res.status(200).json(updatedPortfolio);
   } catch (err) {
     next(err);

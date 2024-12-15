@@ -16,14 +16,16 @@ const updatePortfolioValues = async (portfolio) => {
       _id: portfolio._id,
       userId: portfolio.userId,
       cryptoId: portfolio.cryptoId,
+      name: cryptoResponse.data.name,
+      image: cryptoResponse.data.image.small,
       amount: portfolio.amount,
       totalPurchasePrice: portfolio.totalPurchasePrice,
       currentPriceUSD : Math.round(currentPriceUSD * 100) / 100,
       currentPriceEUR: Math.round(currentPriceUSD * usdToEur * 100 ) /100,
       totalValueUSD: Math.round(currentPriceUSD * portfolio.amount * 100) / 100,
       totalValueEUR: Math.round(currentPriceUSD * portfolio.amount * usdToEur * 100) / 100,
-      profitLossUSD: Math.round((currentPriceUSD * portfolio.amount - portfolio.amount * portfolio.totalPurchasePrice) * 100 ) / 100,
-      profitLossEUR: Math.round((currentPriceUSD * portfolio.amount - portfolio.amount * portfolio.totalPurchasePrice) * usdToEur * 100) / 100,
+      profitLossUSD: Math.round((currentPriceUSD * portfolio.amount - portfolio.totalPurchasePrice) * 100 ) / 100,
+      profitLossEUR: Math.round((currentPriceUSD * portfolio.amount - portfolio.totalPurchasePrice) * usdToEur * 100) / 100,
     };
 
     return updatedPortfolio;
@@ -36,27 +38,27 @@ const updatePortfolioValues = async (portfolio) => {
 
 
 // Handle Buy Operation
-const buyCrypto = async (userId, cryptoId, purchaseAmount, purchasePrice) => {
+const buyCrypto = async (userId, cryptoId, amount, price) => {
   try {
     const portfolio = await PortfolioModel.findOne({ userId, cryptoId });
 
     if (portfolio) {
       // Update existing portfolio entry
-      portfolio.totalPurchasePrice += purchaseAmount * purchasePrice;
-      portfolio.amount += purchaseAmount;
+      portfolio.totalPurchasePrice += parseFloat(amount) * parseFloat(price);
+      portfolio.amount += parseFloat(amount);
       await portfolio.save();
+      return portfolio
     } else {
       // Create a new portfolio entry if it doesn't exist
       const newPortfolio = new PortfolioModel({
         userId,
         cryptoId,
-        amount: purchaseAmount,
-        totalPurchasePrice: purchaseAmount * purchasePrice,
+        amount: parseFloat(amount),
+        totalPurchasePrice: parseFloat(amount) * parseFloat(price),
       });
       await newPortfolio.save();
+      return newPortfolio
     }
-
-    return portfolio || newPortfolio;
   } catch (error) {
     console.error(`Error in buyCrypto: ${error.message}`);
     throw new Error('Failed to process buy operation.');
@@ -66,26 +68,20 @@ const buyCrypto = async (userId, cryptoId, purchaseAmount, purchasePrice) => {
 
 
 // Handle Sell Operation
-const sellCrypto = async (userId, cryptoId, sellAmount, sellPrice) => {
+const sellCrypto = async (userId, cryptoId, amount, price) => {
   try {
     const portfolio = await PortfolioModel.findOne({ userId, cryptoId });
 
-    if (!portfolio || portfolio.amount < sellAmount) {
+    if (!portfolio || portfolio.amount < parseFloat(amount)) {
       throw new Error('Insufficient amount to sell');
     }
 
     // Proportionally adjust the total purchase price
-    portfolio.totalPurchasePrice -= sellAmount * sellPrice;
-    portfolio.amount -= sellAmount;
-
-    // Remove portfolio if no crypto is left
-    if (portfolio.amount <= 0) {
-      await PortfolioModel.deleteOne({ _id: portfolio._id });
-    } else {
-      await portfolio.save();
-    }
-
+    portfolio.totalPurchasePrice -= parseFloat(amount) * parseFloat(price);
+    portfolio.amount -= parseFloat(amount);
+    await portfolio.save();
     return portfolio;
+
   } catch (error) {
     console.error(`Error in sellCrypto: ${error.message}`);
     throw new Error('Failed to process sell operation.');
