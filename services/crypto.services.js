@@ -65,4 +65,22 @@ const fetchConversionRate = async () => {
 };
 
 
-module.exports = { fetchCryptos, fetchCryptoById, fetchCryptoHistory, fetchConversionRate};
+// Fetch top exchanges
+const fetchTopExchanges = async () => {
+  try {
+    const response = await apiClient.get('/exchanges', {
+      params: {
+        per_page: 15, 
+        page: 1,
+      },
+    });
+    return response.data;
+  } catch (err) {
+    console.error('Error fetching top exchanges:', err.message);
+    throw err;
+  }
+};
+
+
+
+module.exports = { fetchCryptos, fetchCryptoById, fetchCryptoHistory, fetchConversionRate, fetchTopExchanges};

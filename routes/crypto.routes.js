@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { fetchCryptos, fetchCryptoById, fetchCryptoHistory, fetchConversionRate } = require('../services/crypto.services');
+const { fetchCryptos, fetchCryptoById, fetchCryptoHistory, fetchConversionRate, fetchTopExchanges } = require('../services/crypto.services');
 
 
 // Get conversion rates (USD <-> EUR)
@@ -23,6 +23,17 @@ router.get('/top', async (req, res, next) => {
   }
 });
 
+router.get('/exchanges', async (req, res, next) => {
+  try {
+    const exchanges = await fetchTopExchanges();
+    res.status(200).json(exchanges);
+  } catch (err) {
+    next(err);
+  }
+});
+
+module.exports = router;
+
 // Get details for a specific cryptocurrency
 router.get('/:id', async (req, res, next) => {
   try {
@@ -37,8 +48,8 @@ router.get('/:id', async (req, res, next) => {
 router.get('/:id/history', async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { days } = req.query; // Optional query parameter
-    const history = await fetchCryptoHistory(id, days || 30);
+    const { days } = req.query; 
+    const history = await fetchCryptoHistory(id, days);
     res.status(200).json(history);
   } catch (err) {
     next(err);
