@@ -13,7 +13,7 @@ const AlertSchema = new Schema(
         required: true,
       },
       condition: {
-        type: String, // "above" or "below"
+        type: String,
         enum: ['above', 'below'],
         required: true,
       },
@@ -23,7 +23,7 @@ const AlertSchema = new Schema(
       },
     },
     {
-      timestamps: true, // Automatically include `createdAt` and `updatedAt`
+      timestamps: true, 
     }
   );
   

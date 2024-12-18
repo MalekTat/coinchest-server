@@ -17,8 +17,6 @@ router.put('/edit', isAuthenticated, uploader.single('profilePhoto'), async (req
       return res.status(400).json({ message: 'Email or Username already exists.' });
     }
 
-
-    // Update user data
     const updatedData = { username, email };
     if (password) {
       const salt = bcryptjs.genSaltSync(12);

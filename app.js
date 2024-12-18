@@ -33,6 +33,9 @@ app.use("/api/crypto", cryptoRoutes);
 const portfolioRoutes = require("./routes/portfolio.routes");
 app.use("/api/portfolio", portfolioRoutes);
 
+const alertRoutes = require("./routes/alert.routes");
+app.use("/api/alert", alertRoutes);
+
 
 
 // ❗ To handle errors. Routes that don't exist or errors that you handle in specific routes

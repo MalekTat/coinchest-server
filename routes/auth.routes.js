@@ -8,11 +8,6 @@ const uploader = require('../middlewares/cloudinary.config');
 //Sign Up route
 router.post("/signup", uploader.single("profilePhoto"), async (req, res, next) => {
   
-  //if (!req.file) {
-  //  next(new Error('No file uploaded!'));
-  //  return;
-  //}
-
   const { username, email, password } = req.body;
   const profilePhoto = req.file?.path || 'https://res.cloudinary.com/dhvyrgmrq/image/upload/v1734197098/iqeyw6qdpum2w0ecqkcm.png';
 
@@ -50,22 +45,18 @@ router.post("/login", async (req, res) => {
   try {
     const userIsExist = await UserModel.findOne({ email });
     if (userIsExist) {
-      // preparing the password check
       const dbPassword = userIsExist.password;
       const loginPassword = password;
 
-      //Password check
       const passwordsMatch = bcryptjs.compareSync(loginPassword, dbPassword);
       if (passwordsMatch) {
-        //Dealing with the token
+
         const { _id, username, profilePhoto } = userIsExist;
         const token = jwt.sign({ _id, username }, process.env.TOKEN_SECRET, {
           algorithm: "HS256",
           expiresIn: "6h",
         });
 
-
-        //sending final response
         res.status(200).json({ 
           message: "login successed", 
           authToken: token,

@@ -76,7 +76,6 @@ const sellCrypto = async (userId, cryptoId, amount, price) => {
       throw new Error('Insufficient amount to sell');
     }
 
-    // Proportionally adjust the total purchase price
     portfolio.totalPurchasePrice -= parseFloat(amount) * parseFloat(price);
     portfolio.amount -= parseFloat(amount);
     await portfolio.save();

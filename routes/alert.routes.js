@@ -2,17 +2,18 @@ const router = require('express').Router();
 const AlertModel = require('../models/Alert.model');
 const { isAuthenticated } = require('../middlewares/jwt.middleware');
 const { fetchCryptoById } = require('../services/crypto.services');
+const { editAlert } = require('../services/alerts.services');
+
+
 
 // Create an alert
 router.post('/', isAuthenticated, async (req, res, next) => {
-  const { cryptoId, name, symbol, targetPrice, condition } = req.body;
+  const { cryptoId, targetPrice, condition } = req.body;
 
   try {
     const newAlert = await AlertModel.create({
       userId: req.payLoad.currentUser._id,
       cryptoId,
-      name,
-      symbol,
       targetPrice,
       condition,
     });
@@ -24,6 +25,8 @@ router.post('/', isAuthenticated, async (req, res, next) => {
   }
 });
 
+
+
 // Get all alerts for the authenticated user
 router.get('/', isAuthenticated, async (req, res, next) => {
   try {
@@ -34,6 +37,34 @@ router.get('/', isAuthenticated, async (req, res, next) => {
     next(error);
   }
 });
+
+
+
+// edit an alert
+router.put('/:id', isAuthenticated, async (req, res, next) => {
+  const { id } = req.params;
+  const { cryptoId, condition, targetPrice, isTriggered } = req.body;
+
+  try {
+    const updatedAlert = await editAlert(req.payLoad.currentUser._id , id, {
+      cryptoId,
+      condition,
+      targetPrice,
+      isTriggered,
+    });
+
+    if (!updatedAlert) {
+      return res.status(404).json({ message: 'Alert not found or not authorized.' });
+    }
+
+    res.status(200).json(updatedAlert);
+    
+  } catch (err) {
+    console.error('Error updating alert:', err.message);
+    next(err); 
+  }
+});
+
 
 // Delete an alert
 router.delete('/:id', isAuthenticated, async (req, res, next) => {
