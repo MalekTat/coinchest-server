@@ -1,14 +1,24 @@
 {
+  "version": 2,
   "builds": [
     {
-      "src": "/server.js",
+      "src": "server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/(.*)",
-      "dest": "/server.js"
+      "src": "/api/(.*)",
+      "dest": "server.js"
     }
-  ]
+  ],
+  "env": {
+    "MONGODB_URI": "@MONGODB_URI",
+    "ORIGIN": "@ORIGIN",
+    "TOKEN_SECRET" : "@TOKEN_SECRET",
+    "CLOUD_NAME" : "@CLOUD_NAME",
+    "CLOUD_API_KEY" : "@CLOUD_API_KEY", 
+    "CLOUD_API_SECRET" : "@CLOUD_API_SECRET",
+    "COINGECKO_API_KEY" : "@COINGECKO_API_KEY"
+  }
 }
