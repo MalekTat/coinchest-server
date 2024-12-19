@@ -7,7 +7,7 @@ const { checkTriggerCondition } = require('../services/alerts.services');
 
 // Create an alert
 router.post('/', isAuthenticated, async (req, res, next) => {
-  const { cryptoId, targetPrice, condition } = req.body;
+  let { cryptoId, targetPrice, condition } = req.body;
 
   try {
 
@@ -52,7 +52,7 @@ router.get('/', isAuthenticated, async (req, res, next) => {
 // edit an alert
 router.put('/:id', isAuthenticated, async (req, res, next) => {
   const { id } = req.params;
-  const { cryptoId, condition, targetPrice } = req.body;
+  let { cryptoId, condition, targetPrice } = req.body;
 
   try {
 
