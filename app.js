@@ -36,6 +36,8 @@ app.use("/api/portfolio", portfolioRoutes);
 const alertRoutes = require("./routes/alert.routes");
 app.use("/api/alert", alertRoutes);
 
+const processAlertsRoutes = require('./routes/process-alerts.routes');
+app.use('/api/process-alerts', processAlertsRoutes);
 
 
 // ❗ To handle errors. Routes that don't exist or errors that you handle in specific routes
