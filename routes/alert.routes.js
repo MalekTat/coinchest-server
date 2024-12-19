@@ -10,6 +10,12 @@ router.post('/', isAuthenticated, async (req, res, next) => {
   const { cryptoId, targetPrice, condition } = req.body;
 
   try {
+
+    targetPrice = parseFloat(targetPrice); 
+    if (isNaN(targetPrice)) {
+      return res.status(400).json({ message: 'Invalid target price. It must be a number.' });
+    }
+
     // Check if the alert is already triggered at creation time
     const isTriggered = await checkTriggerCondition(cryptoId, targetPrice, condition);
 
@@ -49,6 +55,12 @@ router.put('/:id', isAuthenticated, async (req, res, next) => {
   const { cryptoId, condition, targetPrice } = req.body;
 
   try {
+
+    targetPrice = parseFloat(targetPrice); 
+    if (isNaN(targetPrice)) {
+      return res.status(400).json({ message: 'Invalid target price. It must be a number.' });
+    }
+
     // Check if the updated alert is triggered
     const isTriggered = await checkTriggerCondition(cryptoId, targetPrice, condition);
 
