@@ -10,7 +10,7 @@ const updatePortfolioValues = async (portfolio) => {
     ]);
 
     const currentPriceUSD = parseFloat(cryptoResponse.data.market_data.current_price.usd);
-    const usdToEur = ratesResponse.data.rates.eur.value / ratesResponse.data.rates.usd.value;
+    const usdToEur = parseFloat((ratesResponse.data.rates.eur.value / ratesResponse.data.rates.usd.value).toFixed(6));
 
     const updatedPortfolio = {
       _id: portfolio._id,
@@ -18,14 +18,14 @@ const updatePortfolioValues = async (portfolio) => {
       cryptoId: portfolio.cryptoId,
       name: cryptoResponse.data.name,
       image: cryptoResponse.data.image.small,
-      amount: portfolio.amount,
-      totalPurchasePrice: portfolio.totalPurchasePrice,
-      currentPriceUSD : Math.round(currentPriceUSD * 100) / 100,
-      currentPriceEUR: Math.round(currentPriceUSD * usdToEur * 100 ) /100,
-      totalValueUSD: Math.round(currentPriceUSD * portfolio.amount * 100) / 100,
-      totalValueEUR: Math.round(currentPriceUSD * portfolio.amount * usdToEur * 100) / 100,
-      profitLossUSD: Math.round((currentPriceUSD * portfolio.amount - portfolio.totalPurchasePrice) * 100 ) / 100,
-      profitLossEUR: Math.round((currentPriceUSD * portfolio.amount - portfolio.totalPurchasePrice) * usdToEur * 100) / 100,
+      amount: parseFloat(portfolio.amount.toFixed(6)),
+      totalPurchasePrice: parseFloat(portfolio.totalPurchasePrice.toFixed(2)),
+      currentPriceUSD: parseFloat(currentPriceUSD.toFixed(2)),
+      currentPriceEUR: parseFloat((currentPriceUSD * usdToEur).toFixed(2)),
+      totalValueUSD: parseFloat((currentPriceUSD * portfolio.amount).toFixed(2)),
+      totalValueEUR: parseFloat((currentPriceUSD * portfolio.amount * usdToEur).toFixed(2)),
+      profitLossUSD: parseFloat(((currentPriceUSD * portfolio.amount - portfolio.totalPurchasePrice).toFixed(2))),
+      profitLossEUR: parseFloat(((currentPriceUSD * portfolio.amount - portfolio.totalPurchasePrice) * usdToEur).toFixed(2)),
     };
 
     return updatedPortfolio;
@@ -36,48 +36,58 @@ const updatePortfolioValues = async (portfolio) => {
   }
 };
 
-
 // Handle Buy Operation
 const buyCrypto = async (userId, cryptoId, amount, price) => {
   try {
+    const parsedAmount = parseFloat(amount);
+    const parsedPrice = parseFloat(price);
+
+    if (isNaN(parsedAmount) || isNaN(parsedPrice)) {
+      throw new Error('Invalid amount or price');
+    }
+
     const portfolio = await PortfolioModel.findOne({ userId, cryptoId });
 
     if (portfolio) {
-      // Update existing portfolio entry
-      portfolio.totalPurchasePrice += parseFloat(amount) * parseFloat(price);
-      portfolio.amount += parseFloat(amount);
+      portfolio.totalPurchasePrice = parseFloat((portfolio.totalPurchasePrice + parsedAmount * parsedPrice).toFixed(2));
+      portfolio.amount = parseFloat((portfolio.amount + parsedAmount).toFixed(6));
       await portfolio.save();
-      return portfolio
+      return portfolio;
     } else {
-      // Create a new portfolio entry if it doesn't exist
       const newPortfolio = new PortfolioModel({
         userId,
         cryptoId,
-        amount: parseFloat(amount),
-        totalPurchasePrice: parseFloat(amount) * parseFloat(price),
+        amount: parseFloat(parsedAmount.toFixed(6)),
+        totalPurchasePrice: parseFloat((parsedAmount * parsedPrice).toFixed(2)),
       });
       await newPortfolio.save();
-      return newPortfolio
+      return newPortfolio;
     }
   } catch (error) {
     console.error(`Error in buyCrypto: ${error.message}`);
     throw new Error('Failed to process buy operation.');
   }
-}
-
-
+};
 
 // Handle Sell Operation
 const sellCrypto = async (userId, cryptoId, amount, price) => {
   try {
+    const parsedAmount = parseFloat(amount);
+    const parsedPrice = parseFloat(price);
+
+    if (isNaN(parsedAmount) || isNaN(parsedPrice)) {
+      throw new Error('Invalid amount or price');
+    }
+
     const portfolio = await PortfolioModel.findOne({ userId, cryptoId });
 
-    if (!portfolio || portfolio.amount < parseFloat(amount)) {
+    if (!portfolio || portfolio.amount < parsedAmount) {
       throw new Error('Insufficient amount to sell');
     }
 
-    portfolio.totalPurchasePrice -= parseFloat(amount) * parseFloat(price);
-    portfolio.amount -= parseFloat(amount);
+    portfolio.totalPurchasePrice = parseFloat((portfolio.totalPurchasePrice - parsedAmount * parsedPrice).toFixed(2));
+    portfolio.amount = parseFloat((portfolio.amount - parsedAmount).toFixed(6));
+
     await portfolio.save();
     return portfolio;
 

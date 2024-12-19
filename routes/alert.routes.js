@@ -1,8 +1,7 @@
 const router = require('express').Router();
 const AlertModel = require('../models/Alert.model');
 const { isAuthenticated } = require('../middlewares/jwt.middleware');
-const { fetchCryptoById } = require('../services/crypto.services');
-const { editAlert } = require('../services/alerts.services');
+const { checkTriggerCondition } = require('../services/alerts.services');
 
 
 
@@ -11,11 +10,15 @@ router.post('/', isAuthenticated, async (req, res, next) => {
   const { cryptoId, targetPrice, condition } = req.body;
 
   try {
+    // Check if the alert is already triggered at creation time
+    const isTriggered = await checkTriggerCondition(cryptoId, targetPrice, condition);
+
     const newAlert = await AlertModel.create({
       userId: req.payLoad.currentUser._id,
       cryptoId,
       targetPrice,
       condition,
+      isTriggered,
     });
 
     res.status(201).json(newAlert);
@@ -43,25 +46,26 @@ router.get('/', isAuthenticated, async (req, res, next) => {
 // edit an alert
 router.put('/:id', isAuthenticated, async (req, res, next) => {
   const { id } = req.params;
-  const { cryptoId, condition, targetPrice, isTriggered } = req.body;
+  const { cryptoId, condition, targetPrice } = req.body;
 
   try {
-    const updatedAlert = await editAlert(req.payLoad.currentUser._id , id, {
-      cryptoId,
-      condition,
-      targetPrice,
-      isTriggered,
-    });
+    // Check if the updated alert is triggered
+    const isTriggered = await checkTriggerCondition(cryptoId, targetPrice, condition);
+
+    const updatedAlert = await AlertModel.findOneAndUpdate(
+      { _id: id, userId: req.payLoad.currentUser._id },
+      { cryptoId, condition, targetPrice, isTriggered },
+      { new: true } // Return the updated document
+    );
 
     if (!updatedAlert) {
       return res.status(404).json({ message: 'Alert not found or not authorized.' });
     }
 
     res.status(200).json(updatedAlert);
-    
   } catch (err) {
     console.error('Error updating alert:', err.message);
-    next(err); 
+    next(err);
   }
 });
 
@@ -85,32 +89,6 @@ router.delete('/:id', isAuthenticated, async (req, res, next) => {
   }
 });
 
-// Check if alerts are triggered
-router.get('/check', isAuthenticated, async (req, res, next) => {
-  try {
-    const alerts = await AlertModel.find({ userId: req.payLoad.currentUser._id, isTriggered: false });
 
-    const triggeredAlerts = [];
-    for (const alert of alerts) {
-      const cryptoDetails = await fetchCryptoById(alert.cryptoId);
-      const currentPrice = cryptoDetails.market_data.current_price.usd;
-
-      const isTriggered =
-        (alert.condition === 'above' && currentPrice >= alert.targetPrice) ||
-        (alert.condition === 'below' && currentPrice <= alert.targetPrice);
-
-      if (isTriggered) {
-        alert.isTriggered = true;
-        await alert.save(); // Update the alert as triggered
-        triggeredAlerts.push(alert);
-      }
-    }
-
-    res.status(200).json(triggeredAlerts);
-  } catch (error) {
-    console.error('Error checking alerts:', error.message);
-    next(error);
-  }
-});
 
 module.exports = router;
